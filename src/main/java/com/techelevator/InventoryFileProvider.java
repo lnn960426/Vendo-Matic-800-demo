@@ -20,7 +20,7 @@ public class InventoryFileProvider {
 
     private void copyCsvToTemp() {
         try {
-            ClassPathResource res = new ClassPathResource("vendingmachine.csv");
+            ClassPathResource res = new ClassPathResource("static/vendingmachine.csv");
             InputStream is = res.getInputStream();
             File tmp = File.createTempFile("vendingmachine", ".csv");
             try (BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));

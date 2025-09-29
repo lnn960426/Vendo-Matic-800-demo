@@ -1,9 +1,6 @@
 package com.techelevator;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -14,7 +11,7 @@ public class Application {
 	}
 
 
-	static File inventoryFile = new File("vendingmachine.csv");
+	static File inventoryFile = new File("static/vendingmachine.csv");
 
 	public void run() {
 
