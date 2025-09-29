@@ -31,7 +31,6 @@
     const cmd  = document.getElementById('cmd');
 
     function autoScroll(){
-      // make sure the latest lines are visible
       term.scrollTop = term.scrollHeight;
       out.scrollTop  = out.scrollHeight;
     }
@@ -41,21 +40,43 @@
       out.appendChild(d);
       autoScroll();
     }
+
+    // helper: trigger browser download
+    function download(url){
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = ''; // let server name decide
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
     async function send(line){
+      // special command: type "report" to download
+      if (line.trim().toLowerCase() === 'report') {
+        print('Downloading sales report...');
+        download('/cli/report');
+        return;
+      }
       const res = await fetch('/cli', { method:'POST', headers:{'Content-Type':'text/plain'}, body: line });
       const txt = await res.text();
       print(txt);
+
+      // if server mentions the download path, start download automatically
+      if (txt.includes('/cli/report')) {
+        download('/cli/report');
+      }
     }
 
     cmd.addEventListener('keydown', e=>{
       if(e.key==='Enter'){
         const t = cmd.value.trim();
-        if(t){ print(t); send(t); }   // no "$ " prefix
+        if(t){ print(t); send(t); }
         cmd.value='';
       }
     });
 
-    // first screen: show menu once
+    // show main menu on load
     send('menu');
     cmd.focus();
 </script>
