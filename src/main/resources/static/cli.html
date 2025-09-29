@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Vendo-Matic 800 · CLI</title>
+    <style>
+        /* simple terminal style */
+        :root{--bg:#0b0f14;--panel:#0f1720;--fg:#e6edf3;--dim:#9fb0c0}
+        body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-monospace,Menlo,Consolas,monospace}
+        .wrap{max-width:920px;margin:28px auto;padding:16px}
+        .term{border:1px solid #1f2937;background:var(--panel);border-radius:12px;padding:14px;min-height:60vh}
+        .out{white-space:pre-wrap}
+        .prompt{display:flex;gap:8px;margin-top:12px}
+        .ps1{color:#7dd3fc}
+        input{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#111827;color:var(--fg)}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="term">
+        <div id="out" class="out"></div>
+        <div class="prompt">
+            <div class="ps1">$</div>
+            <input id="cmd" placeholder="Type: 1 | 2 | 3 | 4 | feed 2 | select A1 | finish | help"/>
+        </div>
+    </div>
+</div>
+
+<script>
+    const out = document.getElementById('out');
+    const cmd = document.getElementById('cmd');
+
+    function print(s){
+      const d=document.createElement('div');
+      d.textContent=s;
+      out.appendChild(d);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    async function send(line){
+      // send plain text and print server text
+      const res = await fetch('/cli', {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: line
+      });
+      const txt = await res.text();
+      print(txt);
+    }
+
+    cmd.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        const t = cmd.value.trim();
+        if(t){ print('$ ' + t); send(t); }
+        cmd.value='';
+      }
+    });
+
+    // first screen: show menu
+   fetch('/cli', {method:'POST', headers:{'Content-Type':'text/plain'}, body:'menu'})
+  .then(r=>r.text()).then(print);
+</script>
+</body>
+</html>
