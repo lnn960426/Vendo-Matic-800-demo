@@ -164,7 +164,7 @@ public class CliController {
 
                 sb.append("TOTAL SALES $").append(totalSales.toPlainString()).append("\n");
                 sb.append("Download sales report....").append("\n\n");
-                sb.append("press enter to restart the machine");
+                sb.append("Type Enter to restart the machine");
 
                 s.waitingAnyKey = true;
                 return sb.toString();
