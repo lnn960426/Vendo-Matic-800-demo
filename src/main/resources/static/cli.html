@@ -34,35 +34,61 @@
       term.scrollTop = term.scrollHeight;
       out.scrollTop  = out.scrollHeight;
     }
-    function print(line){
-      const d=document.createElement('div');
-      d.textContent=line;
+
+    function printBlock(txt){
+      // show raw text
+      const d = document.createElement('div');
+      d.textContent = txt;
       out.appendChild(d);
+
+      // if server mentions report, append a clickable link
+      if (/download sales report/i.test(txt)) {
+        const linkWrap = document.createElement('div');
+        const a = document.createElement('a');
+        a.href = '/cli/report';
+        a.textContent = 'Click here to download report.txt';
+        a.style.display = 'inline-block';
+        a.style.marginTop = '6px';
+        linkWrap.appendChild(a);
+        out.appendChild(linkWrap);
+
+        // try auto download once (some browsers require gesture, but we try anyway)
+        a.download = '';
+        setTimeout(() => a.click(), 100);
+      }
+
       autoScroll();
     }
 
-    // helper: trigger browser download
+    // real download helper if user types "report"
     function download(url){
       const a = document.createElement('a');
       a.href = url;
-      a.download = ''; // let server name decide
+      a.download = '';
       document.body.appendChild(a);
       a.click();
       a.remove();
     }
 
     async function send(line){
-      // special command: type "report" to download
-      if (line.trim().toLowerCase() === 'report') {
-        print('Downloading sales report...');
+      const t = line.trim();
+
+      // manual command to force download
+      if (t.toLowerCase() === 'report') {
+        printBlock('Downloading sales report...');
         download('/cli/report');
         return;
       }
-      const res = await fetch('/cli', { method:'POST', headers:{'Content-Type':'text/plain'}, body: line });
-      const txt = await res.text();
-      print(txt);
 
-      // if server mentions the download path, start download automatically
+      const res = await fetch('/cli', {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: line
+      });
+      const txt = await res.text();
+      printBlock(txt);
+
+      // fallback: if text contains the path anywhere, also trigger download
       if (txt.includes('/cli/report')) {
         download('/cli/report');
       }
@@ -71,7 +97,15 @@
     cmd.addEventListener('keydown', e=>{
       if(e.key==='Enter'){
         const t = cmd.value.trim();
-        if(t){ print(t); send(t); }
+        if(t){
+          // echo user's input (no $ prefix)
+          const echo = document.createElement('div');
+          echo.textContent = t;
+          out.appendChild(echo);
+          autoScroll();
+
+          send(t);
+        }
         cmd.value='';
       }
     });

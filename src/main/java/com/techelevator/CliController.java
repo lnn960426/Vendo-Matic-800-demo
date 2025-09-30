@@ -52,13 +52,21 @@ public class CliController {
         }
     }
 
-    @GetMapping("/report")
+    @GetMapping(value = "/report", produces = "text/plain")
     public ResponseEntity<Resource> downloadReport() {
-        File file = new File("report.txt");
-        if (!file.exists()) return ResponseEntity.notFound().build();
+        File file = new File("report.txt"); // SalesReport
+        if (!file.exists()) {
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"report.txt\"")
+                    .body(new org.springframework.core.io.ByteArrayResource(new byte[0]));
+        }
+        FileSystemResource res = new FileSystemResource(file);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"report.txt\"")
-                .body(new FileSystemResource(file));
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .body(res);
     }
 
     private String mainMenu() {
@@ -74,8 +82,15 @@ public class CliController {
         String text = "\n(1) Feed money\n"
                 + "(2) Select product\n"
                 + "(3) Finish Transaction";
-        if (s.lastItemName != null && !s.lastItemName.isEmpty()) {
-            text += "\ncurrently in cart: " + s.lastItemName + " $" + s.lastItemPrice.toPlainString();
+
+        // show ALL items in cart
+        if (s.cartNames != null && !s.cartNames.isEmpty()) {
+            text += "\ncurrently in cart:";
+            for (int i = 0; i < s.cartNames.size(); i++) {
+                String n = s.cartNames.get(i);
+                BigDecimal p = s.cartPrices.get(i);
+                text += "\n - " + n + " $" + p.toPlainString();
+            }
         }
         return text;
     }
